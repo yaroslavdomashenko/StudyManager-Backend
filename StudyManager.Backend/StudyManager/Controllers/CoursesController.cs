@@ -44,7 +44,6 @@ namespace StudyManager.Controllers
         /// <summary>
         /// Returns all courses. Requires "Admin" or "Teacher" role.
         /// </summary>
-        /// <param name="onlyActive"></param>
         /// <returns></returns>
         [Authorize(Roles = "Admin,Teacher")]
         [HttpGet("")]
@@ -57,6 +56,7 @@ namespace StudyManager.Controllers
         /// Method creates a new course. Requires "Admin" or "Teacher" role.
         /// </summary>
         /// <param name="title"></param>
+        /// <param name="price"></param>
         /// <returns></returns>
         [Authorize(Roles = "Admin,Teacher")]
         [HttpPost("create")]
@@ -98,7 +98,7 @@ namespace StudyManager.Controllers
         /// <summary>
         /// Adds a new student into the course by user's id, courses id. Requires "Admin" or "Teacher" role.
         /// </summary>
-        /// <param name="user"></param>
+        /// <param name="userLogin"></param>
         /// <param name="course"></param>
         /// <returns></returns>
         [Authorize(Roles = "Admin,Teacher")]
@@ -164,7 +164,6 @@ namespace StudyManager.Controllers
         /// <summary>
         /// Removes teacher from course. Requires "Admin" role.
         /// </summary>
-        /// <param name="user"></param>
         /// <param name="course"></param>
         /// <returns></returns>
         [Authorize(Roles = "Admin")]

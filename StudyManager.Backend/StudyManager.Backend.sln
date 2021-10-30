@@ -9,6 +9,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StudyManager.Data", "StudyM
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StudyManager.Services", "StudyManager.Services\StudyManager.Services.csproj", "{51F46A27-E668-44A4-9F71-0643518FA32E}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StudyManager.Testing", "StudyManager.Testing\StudyManager.Testing.csproj", "{30A607BA-5801-4B61-B116-43BD20C71F7E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{51F46A27-E668-44A4-9F71-0643518FA32E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{51F46A27-E668-44A4-9F71-0643518FA32E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{51F46A27-E668-44A4-9F71-0643518FA32E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{30A607BA-5801-4B61-B116-43BD20C71F7E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{30A607BA-5801-4B61-B116-43BD20C71F7E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{30A607BA-5801-4B61-B116-43BD20C71F7E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{30A607BA-5801-4B61-B116-43BD20C71F7E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
