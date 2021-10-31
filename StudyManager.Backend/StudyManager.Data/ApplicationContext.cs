@@ -31,5 +31,6 @@ namespace StudyManager.Data
         public DbSet<HomeworkReply> HomeworkReplies { get; set; }
         public DbSet<Attachment> Attachments { get; set; }
         public DbSet<Comment> Comments { get; set; }
+        public DbSet<Message> Messages { get; set; }
     }
 }

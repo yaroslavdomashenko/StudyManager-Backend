@@ -91,7 +91,7 @@ namespace StudyManager.Services.Services
         }
         public async Task<List<Course>> GetAll(int take, int skip)
         {
-            return await _context.Courses.Skip(skip).Take(take).OrderBy(x=> x.IsActive).ToListAsync();
+            return await _context.Courses.OrderBy(x => x.IsActive).Skip(skip).Take(take).ToListAsync();
         }
 
         public async Task AddTeacher(string teacherLogin, Guid courseId)

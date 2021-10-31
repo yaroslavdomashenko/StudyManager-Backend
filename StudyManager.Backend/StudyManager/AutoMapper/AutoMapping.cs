@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using StudyManager.Data.Entities;
 using StudyManager.Data.Models;
+using StudyManager.Data.Models.Chat;
 using StudyManager.Data.Models.Comment;
 using StudyManager.Data.Models.Homework;
 using StudyManager.Data.Models.Notification;
@@ -31,6 +32,8 @@ namespace StudyManager.AutoMapper
             CreateMap<Attachment, AttachmentModel>();
 
             CreateMap<Comment, CommentModel>();
+
+            CreateMap<Message, MessageDto>();
         }
     }
 }

@@ -10,8 +10,8 @@ using StudyManager.Data;
 namespace StudyManager.Data.Migrations
 {
     [DbContext(typeof(ApplicationContext))]
-    [Migration("20211025115633_init")]
-    partial class init
+    [Migration("20211031141818_empty")]
+    partial class empty
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {

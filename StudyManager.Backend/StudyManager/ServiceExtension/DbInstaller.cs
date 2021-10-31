@@ -25,6 +25,7 @@ namespace StudyManager.ServiceExtension
             services.AddTransient<INotificationService, NotificationService>();
             services.AddTransient<IHomeworkService, HomeworkService>();
             services.AddTransient<ICommentsService, CommentsService>();
+            services.AddTransient<IChatService, ChatService>();
         }
     }
 }
