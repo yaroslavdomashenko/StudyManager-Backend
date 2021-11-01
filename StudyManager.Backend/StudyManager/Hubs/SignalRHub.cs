@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.SignalR;
 using StudyManager.Data.Models.Chat;
+using StudyManager.Models;
 using StudyManager.Services.Interfaces;
 using System;
 using System.Collections.Generic;
@@ -19,11 +20,15 @@ namespace StudyManager.Hubs
         public async Task EnterToGroup(string groupName)
         {
             await Groups.AddToGroupAsync(Context.ConnectionId, groupName);
+            ClientsHandler.ConnectedIds.Add(Context.ConnectionId, groupName);
+            var count = ClientsHandler.GroupCount(groupName);
+            await Clients.Group(groupName).SendAsync("GroupInfo", count);
         }
 
-        public async Task LeaveTheGroup(string groupName)
+        public override Task OnDisconnectedAsync(Exception exception)
         {
-            await Groups.RemoveFromGroupAsync(Context.ConnectionId, groupName);
+            ClientsHandler.ConnectedIds.Remove(Context.ConnectionId);
+            return base.OnDisconnectedAsync(exception);
         }
 
         public async Task SendMessageToGroup(MessageModel message)
