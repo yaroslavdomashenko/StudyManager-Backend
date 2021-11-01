@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using StudyManager.Data.Exceptions;
 using StudyManager.Data.Models.Comment;
 using StudyManager.ResponseModels;
 using StudyManager.Services.Interfaces;
@@ -31,7 +32,7 @@ namespace StudyManager.Controllers
                 var comment = await _commentsService.CreateComment(hwId, User.Identity.Name, text);
                 return Ok(comment);
             }
-            catch (Exception ex)
+            catch (ServiceException ex)
             {
                 return BadRequest(new ErrorModel { Code = 400, Message = ex.Message });
             }
@@ -47,7 +48,7 @@ namespace StudyManager.Controllers
             {
                 var comments = await _commentsService.GetComments(hwId, take, skip);
                 return Ok(comments);
-            }catch(Exception ex)
+            }catch(ServiceException ex)
             {
                 return BadRequest(new ErrorModel { Code = 400, Message = ex.Message });
             }
@@ -64,7 +65,7 @@ namespace StudyManager.Controllers
                 await _commentsService.DeleteComment(id);
                 return Ok();
             }
-            catch (Exception ex)
+            catch (ServiceException ex)
             {
                 return BadRequest(new ErrorModel { Code = 400, Message = ex.Message });
             }

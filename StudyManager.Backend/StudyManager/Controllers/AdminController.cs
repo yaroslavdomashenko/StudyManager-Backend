@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using StudyManager.Data.Entities;
+using StudyManager.Data.Exceptions;
 using StudyManager.ResponseModels;
 using StudyManager.Services.Interfaces;
 using System;
@@ -36,7 +37,7 @@ namespace StudyManager.Controllers
             {
                 await _adminService.ChangeRole(User.Identity.Name,id, role);
                 return Ok();
-            }catch(Exception ex)
+            }catch(ServiceException ex)
             {
                 return BadRequest(new ErrorModel { Code = 400, Message = ex.Message });
             }
@@ -59,7 +60,7 @@ namespace StudyManager.Controllers
                 await _adminService.ChangeRole(User.Identity.Name, login, role);
                 return Ok();
             }
-            catch (Exception ex)
+            catch (ServiceException ex)
             {
                 return BadRequest(new ErrorModel { Code = 400, Message = ex.Message });
             }

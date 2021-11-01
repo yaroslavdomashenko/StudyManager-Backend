@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using StudyManager.Data.Exceptions;
 using StudyManager.Data.Models.Homework;
 using StudyManager.ResponseModels;
 using StudyManager.Services.Interfaces;
@@ -30,7 +31,7 @@ namespace StudyManager.Controllers
                 var homework = await _hwService.GetHomework(id);
                 var attach = await _hwService.GetAttachment(homework.Id);
                 return Ok(new { homework, attach });
-            }catch(Exception ex)
+            }catch(ServiceException ex)
             {
                 return BadRequest(new ErrorModel { Code = 400, Message = ex.Message });
             }
@@ -47,7 +48,7 @@ namespace StudyManager.Controllers
                 var homeworks = await _hwService.GetHomeworks(courseId, take, skip);
                 return Ok(homeworks);
             }
-            catch (Exception ex)
+            catch (ServiceException ex)
             {
                 return BadRequest(new ErrorModel { Code = 400, Message = ex.Message });
             }
@@ -63,7 +64,7 @@ namespace StudyManager.Controllers
                 var id = await _hwService.CreateHomework(model);
                 return Ok(id);
             }
-            catch (Exception ex)
+            catch (ServiceException ex)
             {
                 return BadRequest(new ErrorModel { Code = 400, Message = ex.Message });
             }
@@ -82,7 +83,7 @@ namespace StudyManager.Controllers
                 await _hwService.AddAttachments(id, files);
                 return Ok();
             }
-            catch (Exception ex)
+            catch (ServiceException ex)
             {
                 return BadRequest(new ErrorModel { Code = 400, Message = ex.Message });
             }
@@ -99,7 +100,7 @@ namespace StudyManager.Controllers
                 await _hwService.UpdateHomework(id, title, text);
                 return Ok();
             }
-            catch (Exception ex)
+            catch (ServiceException ex)
             {
                 return BadRequest(new ErrorModel { Code = 400, Message = ex.Message });
             }
@@ -116,7 +117,7 @@ namespace StudyManager.Controllers
                 await _hwService.DeleteHomework(id);
                 return Ok();
             }
-            catch (Exception ex)
+            catch (ServiceException ex)
             {
                 return BadRequest(new ErrorModel { Code = 400, Message = ex.Message });
             }

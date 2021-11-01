@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using StudyManager.Data.Exceptions;
 using StudyManager.Data.Models.Chat;
 using StudyManager.ResponseModels;
 using StudyManager.Services.Interfaces;
@@ -28,7 +29,7 @@ namespace StudyManager.Controllers
                 var messages = await _chatService.GetMessages(chatId, skip);
                 return Ok(messages);
             }
-            catch (Exception ex)
+            catch (ServiceException ex)
             {
                 return BadRequest(new ErrorModel { Code = 400, Message = ex.Message });
             }

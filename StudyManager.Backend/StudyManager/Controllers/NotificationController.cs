@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using StudyManager.Data.Exceptions;
 using StudyManager.ResponseModels;
 using StudyManager.Services.Interfaces;
 using System;
@@ -26,7 +27,7 @@ namespace StudyManager.Controllers
                 var notifications = await _notificationService.GetNotification(User.Identity.Name, take, skip);
                 return Ok(notifications);
             }
-            catch (Exception ex)
+            catch (ServiceException ex)
             {
                 return BadRequest(new ErrorModel { Code = 400, Message = ex.Message });
             }
@@ -41,7 +42,7 @@ namespace StudyManager.Controllers
                 await _notificationService.MarkAsRead(id);
                 return Ok();
             }
-            catch (Exception ex)
+            catch (ServiceException ex)
             {
                 return BadRequest(new ErrorModel { Code = 400, Message = ex.Message });
             }

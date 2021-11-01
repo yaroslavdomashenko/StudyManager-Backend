@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using StudyManager.Data;
 using StudyManager.Data.Entities;
+using StudyManager.Data.Exceptions;
 using StudyManager.Data.Models.Homework;
 using StudyManager.Services.Interfaces;
 using System;
@@ -31,7 +32,7 @@ namespace StudyManager.Services.Services
         {
             var homework = await _context.Homeworks.FirstOrDefaultAsync(x => x.Id == id);
             if (homework == null)
-                throw new Exception("Homework not found");
+                throw new ServiceException("Homework not found");
 
             var attachments = new List<Attachment>();
             foreach(IFormFile file in files)
@@ -63,7 +64,7 @@ namespace StudyManager.Services.Services
         {
             var course = await _context.Courses.FirstOrDefaultAsync(x => x.Id == model.CourseId);
             if (course == null)
-                throw new Exception("Course not found");
+                throw new ServiceException("Course not found");
             var homework = new Homework()
             {
                 Id = Guid.NewGuid(),
@@ -83,7 +84,7 @@ namespace StudyManager.Services.Services
         {
             var homework = await _context.Homeworks.FirstOrDefaultAsync(x => x.Id == id);
             if (homework == null)
-                throw new Exception("Homework not found");
+                throw new ServiceException("Homework not found");
             _context.Homeworks.Remove(homework);
             await _context.SaveChangesAsync();
         }
@@ -98,7 +99,7 @@ namespace StudyManager.Services.Services
         {
             var homework = await _context.Homeworks.FirstOrDefaultAsync(x => x.Id == id);
             if (homework == null)
-                throw new Exception("Homework not found");
+                throw new ServiceException("Homework not found");
             return _mapper.Map<HomeworkModel>(homework);
         }
 
@@ -112,7 +113,7 @@ namespace StudyManager.Services.Services
         {
             var homework = await _context.Homeworks.FirstOrDefaultAsync(x => x.Id == id);
             if (homework == null)
-                throw new Exception("Homework not found");
+                throw new ServiceException("Homework not found");
 
             homework.Title = String.IsNullOrEmpty(title) ? homework.Title : title;
             homework.Text = String.IsNullOrEmpty(text) ? homework.Text : text;

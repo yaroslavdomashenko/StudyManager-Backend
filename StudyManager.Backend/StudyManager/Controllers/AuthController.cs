@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using StudyManager.Data.Exceptions;
 using StudyManager.Data.Models;
 using StudyManager.ResponseModels;
 using StudyManager.Services.Interfaces;
@@ -48,7 +49,7 @@ namespace StudyManager.Controllers
                 model.Token = await _authService.Login(request);
                 return Ok(model);
             }
-            catch(Exception ex)
+            catch(ServiceException ex)
             {
                 return BadRequest(new ErrorModel { Code = 400, Message = ex.Message });
             }

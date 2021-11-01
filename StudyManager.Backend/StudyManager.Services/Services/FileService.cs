@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using StudyManager.Data;
+using StudyManager.Data.Exceptions;
 using StudyManager.Services.Interfaces;
 using System;
 using System.IO;
@@ -28,7 +29,7 @@ namespace StudyManager.Services.Services
         {
             var user = await _context.Users.FirstOrDefaultAsync(x => x.Login == userIdentity);
             if (user == null)
-                throw new Exception("User not found");
+                throw new ServiceException("User not found");
             if (user.Avatar != null)
                 await DeleteImage(user.Avatar);
 

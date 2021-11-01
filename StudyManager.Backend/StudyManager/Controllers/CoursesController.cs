@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using StudyManager.Data.Entities;
+using StudyManager.Data.Exceptions;
 using StudyManager.Data.Models;
 using StudyManager.Data.Models.Course;
 using StudyManager.ResponseModels;
@@ -35,7 +36,7 @@ namespace StudyManager.Controllers
             try
             {
                 return Ok(await _courseService.Get(id));
-            }catch(Exception ex)
+            }catch(ServiceException ex)
             {
                 return NotFound(new ErrorModel { Code = 404, Message = ex.Message });
             }
@@ -68,7 +69,7 @@ namespace StudyManager.Controllers
             {
                 var newCourse = await _courseService.Create(User.Identity.Name, title, price);
                 return Ok(newCourse);
-            }catch(Exception ex)
+            }catch(ServiceException ex)
             {
                 return BadRequest(new ErrorModel { Code = 400, Message = ex.Message });
             }
@@ -89,7 +90,7 @@ namespace StudyManager.Controllers
             {
                 await _courseService.ChangeActive(course);
                 return Ok();
-            }catch(Exception ex)
+            }catch(ServiceException ex)
             {
                 return BadRequest(new ErrorModel { Code = 400, Message = ex.Message });
             }
@@ -111,7 +112,7 @@ namespace StudyManager.Controllers
             {
                 await _courseService.Add(User.Identity.Name, userLogin, course);
                 return Ok();
-            }catch(Exception ex)
+            }catch(ServiceException ex)
             {
                 return BadRequest(new ErrorModel { Code = 400, Message = ex.Message });
             }
@@ -133,7 +134,7 @@ namespace StudyManager.Controllers
             {
                 await _courseService.Remove(user, course);
                 return Ok();
-            }catch(Exception ex)
+            }catch(ServiceException ex)
             {
                 return BadRequest(new ErrorModel { Code = 400, Message = ex.Message });
             }
@@ -155,7 +156,7 @@ namespace StudyManager.Controllers
             {
                 await _courseService.AddTeacher(user, course);
                 return Ok();
-            }catch(Exception ex)
+            }catch(ServiceException ex)
             {
                 return BadRequest(new ErrorModel { Code = 400, Message = ex.Message });
             }
@@ -177,7 +178,7 @@ namespace StudyManager.Controllers
                 await _courseService.RemoveTeacher(course);
                 return Ok();
             }
-            catch (Exception ex)
+            catch (ServiceException ex)
             {
                 return BadRequest(new ErrorModel { Code = 400, Message = ex.Message });
             }
@@ -194,7 +195,7 @@ namespace StudyManager.Controllers
                 await _courseService.EditInfo(model);
                 return Ok();
             }
-            catch (Exception ex)
+            catch (ServiceException ex)
             {
                 return BadRequest(new ErrorModel { Code = 400, Message = ex.Message });
             }

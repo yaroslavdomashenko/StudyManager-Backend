@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using StudyManager.Data;
 using StudyManager.Data.Entities;
+using StudyManager.Data.Exceptions;
 using StudyManager.Data.Models.Comment;
 using StudyManager.Services.Interfaces;
 using System;
@@ -25,8 +26,8 @@ namespace StudyManager.Services.Services
         {
             var homework = await _context.Homeworks.FirstOrDefaultAsync(x => x.Id == homeworkId);
             var user = await _context.Users.FirstOrDefaultAsync(x => x.Login == userLogin);
-            if (homework == null) throw new Exception("Homework not found");
-            if (user == null) throw new Exception("User not found");
+            if (homework == null) throw new ServiceException("Homework not found");
+            if (user == null) throw new ServiceException("User not found");
 
             var comment = new Comment
             {
@@ -45,7 +46,7 @@ namespace StudyManager.Services.Services
         {
             var homework = await _context.Comments.FirstOrDefaultAsync(x => x.Id == id);
             if (homework == null)
-                throw new Exception("Homework not found");
+                throw new ServiceException("Homework not found");
 
             _context.Comments.Remove(homework);
             await _context.SaveChangesAsync();

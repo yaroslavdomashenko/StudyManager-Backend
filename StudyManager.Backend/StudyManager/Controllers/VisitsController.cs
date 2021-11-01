@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using StudyManager.Data.Exceptions;
 using StudyManager.Data.Models.Visit;
 using StudyManager.ResponseModels;
 using StudyManager.Services.Interfaces;
@@ -37,7 +38,7 @@ namespace StudyManager.Controllers
                 var visits = await _visitService.GetVisits(courseId, take, skip);
                 return Ok(visits);
             }
-            catch(Exception ex)
+            catch(ServiceException ex)
             {
                 return BadRequest(new ErrorModel { Code = 400, Message = ex.Message });
             } 
@@ -58,7 +59,7 @@ namespace StudyManager.Controllers
             {
                 var visit = await _visitService.CreateVisit(model);
                 return Ok(visit);
-            }catch(Exception ex)
+            }catch(ServiceException ex)
             {
                 return BadRequest(new ErrorModel { Code = 400, Message = ex.Message });
             }
@@ -74,7 +75,7 @@ namespace StudyManager.Controllers
                 var visits = await _visitService.GetVisitsInPeriod(model, login);
                 return Ok(visits);
             }
-            catch (Exception ex)
+            catch (ServiceException ex)
             {
                 return BadRequest(new ErrorModel { Code = 400, Message = ex.Message });
             }

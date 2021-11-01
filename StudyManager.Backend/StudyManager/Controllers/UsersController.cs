@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using StudyManager.Data.Exceptions;
 using StudyManager.Data.Models;
 using StudyManager.ResponseModels;
 using StudyManager.Services.Interfaces;
@@ -32,7 +33,7 @@ namespace StudyManager.Controllers
             {
                 await _fileService.UploadAvatar(User.Identity.Name, file);
                 return Ok();
-            }catch(Exception ex)
+            }catch(ServiceException ex)
             {
                 return BadRequest(new ErrorModel { Code = 400, Message = ex.Message });
             }
@@ -52,7 +53,7 @@ namespace StudyManager.Controllers
                 var user = await _userService.Get(User.Identity.Name);
                 return Ok(user);
             }
-            catch (Exception ex)
+            catch (ServiceException ex)
             {
                 return NotFound(new ErrorModel { Code = 404, Message = ex.Message });
             }
@@ -72,7 +73,7 @@ namespace StudyManager.Controllers
             {
                 var user = await _userService.Get(id);
                 return Ok(user);
-            }catch(Exception ex)
+            }catch(ServiceException ex)
             {
                 return NotFound(new ErrorModel { Code = 404, Message = ex.Message });
             }
@@ -93,7 +94,7 @@ namespace StudyManager.Controllers
                 var user = await _userService.Get(login);
                 return Ok(user);
             }
-            catch (Exception ex)
+            catch (ServiceException ex)
             {
                 return NotFound(new ErrorModel { Code = 404, Message = ex.Message });
             }
@@ -125,7 +126,7 @@ namespace StudyManager.Controllers
                 await _userService.ChangePassword(User.Identity.Name, model);
                 return Ok();
             }
-            catch(Exception ex)
+            catch(ServiceException ex)
             {;
                 return BadRequest(new ErrorModel { Code = 400, Message = ex.Message });
             }
@@ -146,7 +147,7 @@ namespace StudyManager.Controllers
             {
                 await _userService.ChangeName(User.Identity.Name, model);
                 return Ok(model);
-            }catch(Exception ex)
+            }catch(ServiceException ex)
             {
                 return BadRequest(new ErrorModel { Code = 400, Message = ex.Message });
             }

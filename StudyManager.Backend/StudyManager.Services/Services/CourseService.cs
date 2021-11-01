@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using StudyManager.Data;
 using StudyManager.Data.Entities;
+using StudyManager.Data.Exceptions;
 using StudyManager.Data.Models;
 using StudyManager.Data.Models.Course;
 using StudyManager.Services.Interfaces;
@@ -30,10 +31,13 @@ namespace StudyManager.Services.Services
             var user = await _context.Users.FirstOrDefaultAsync(x => x.Login == userLogin);
             var course = await _context.Courses.Include(x => x.Students).FirstOrDefaultAsync(x => x.Id == courseId);
 
-            if (user == null || course == null) throw new Exception("User or course not found");
-            if (user == req) throw new Exception("You can't add yourself in course as student");
+            if (user == null || course == null)
+                throw new ServiceException("User or course not found");
+            if (user == req) 
+                throw new ServiceException("You can't add yourself in course as student");
             if (!course.IsActive) throw new Exception("Course is closed");
-            if (course.Students.Any(x => x.Login == user.Login)) throw new Exception("User already in course");
+            if (course.Students.Any(x => x.Login == user.Login)) 
+                throw new ServiceException("User already in course");
 
             course.Students.Add(user);
             await _context.SaveChangesAsync();
@@ -45,7 +49,7 @@ namespace StudyManager.Services.Services
             var user = await _context.Users.FirstOrDefaultAsync(x => x.Id == userId);
             var course = await _context.Courses.Include(x => x.Students).FirstOrDefaultAsync(x => x.Id == courseId);
             if (user == null || course == null)
-                throw new Exception("User or course not found");
+                throw new ServiceException("User or course not found");
 
             course.Students.Remove(user);
             await _context.SaveChangesAsync();
@@ -57,17 +61,17 @@ namespace StudyManager.Services.Services
         {
             var course = await _context.Courses.FirstOrDefaultAsync(x => x.Id == courseId);
             if (course == null)
-                throw new Exception("Course not found");
+                throw new ServiceException("Course not found");
             course.IsActive = !course.IsActive;
             await _context.SaveChangesAsync();
         }
         public async Task<Course> Create(string login, string title, decimal price)
         {
             if (price <= 0) 
-                throw new Exception("Price can't be less or equal 0");
+                throw new ServiceException("Price can't be less or equal 0");
             var teacher = await _context.Users.FirstOrDefaultAsync(x => x.Login.ToLower() == login.ToLower());
             if (teacher == null)
-                throw new Exception("User not found");
+                throw new ServiceException("User not found");
             Course course = new Course
             {
                 Id = Guid.NewGuid(),
@@ -86,7 +90,7 @@ namespace StudyManager.Services.Services
         {
             var course = await _context.Courses.Include(x => x.Students).Include(x => x.User).FirstOrDefaultAsync(x => x.Id == id);
             if (course == null)
-                throw new Exception("Course not found");
+                throw new ServiceException("Course not found");
             return _mapper.Map<CourseModel>(course);
         }
         public async Task<List<Course>> GetAll(int take, int skip)
@@ -99,9 +103,12 @@ namespace StudyManager.Services.Services
             var user = await _context.Users.Include(x => x.Courses).FirstOrDefaultAsync(x => x.Login == teacherLogin);
             var course = await _context.Courses.Include(x => x.User).FirstOrDefaultAsync(x => x.Id == courseId);
 
-            if (course == null || user == null) throw new Exception("User or course not found");
-            if (course.User != null) throw new Exception("Course already has a teacher. Remove it firstly");
-            if (!course.IsActive) throw new Exception("Course is closed");
+            if (course == null || user == null) 
+                throw new ServiceException("User or course not found");
+            if (course.User != null) 
+                throw new ServiceException("Course already has a teacher. Remove it firstly");
+            if (!course.IsActive) 
+                throw new ServiceException("Course is closed");
 
             course.UserId = user.Id;
             await _context.SaveChangesAsync();
@@ -112,8 +119,10 @@ namespace StudyManager.Services.Services
         public async Task RemoveTeacher(Guid courseId)
         {
             var course = await _context.Courses.Include(x => x.User).FirstOrDefaultAsync(x => x.Id == courseId);
-            if (course == null) throw new Exception("Course not found");
-            if (course.User == null) throw new Exception("Course already doesn't have a teacher");
+            if (course == null) 
+                throw new ServiceException("Course not found");
+            if (course.User == null) 
+                throw new ServiceException("Course already doesn't have a teacher");
 
             var user = await _context.Users.Include(x => x.Courses).FirstOrDefaultAsync(x => x.Id == course.UserId);
             course.UserId = null;
@@ -125,7 +134,8 @@ namespace StudyManager.Services.Services
         public async Task EditInfo(EditInfoModel model)
         {
             var course = await _context.Courses.Include(x => x.User).FirstOrDefaultAsync(x => x.Id == model.CourseId);
-            if (course == null) throw new Exception("Course not found");
+            if (course == null) 
+                throw new ServiceException("Course not found");
 
             if (!String.IsNullOrEmpty(model.Title)) 
                 course.Title = model.Title;

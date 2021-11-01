@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using StudyManager.Data;
 using StudyManager.Data.Entities;
+using StudyManager.Data.Exceptions;
 using StudyManager.Data.Models;
 using StudyManager.Services.Interfaces;
 using System;
@@ -28,7 +29,7 @@ namespace StudyManager.Services.Services
         {
             var user = await _context.Users.FirstOrDefaultAsync(x => x.Login.ToLower() == login.ToLower());
             if (user == null)
-                throw new Exception("User not found");
+                throw new ServiceException("User not found");
             user.Name = model.Name != null ? model.Name : user.Name;
             user.Surename = model.Surename != null ? model.Surename : user.Surename;
             await _context.SaveChangesAsync();
@@ -39,9 +40,9 @@ namespace StudyManager.Services.Services
         {
             var user = await _context.Users.FirstOrDefaultAsync(x => x.Login.ToLower() == login.ToLower());
             if (user == null)
-                throw new Exception("User not found");
+                throw new ServiceException("User not found");
             if (!VerifyPassswordHash(model.OldPassword, user.PasswordHash, user.PasswordSalt))
-                throw new Exception("Wrong old password");
+                throw new ServiceException("Wrong old password");
 
             CreateHash(model.NewPassword, out byte[] hash, out byte[] salt);
             user.PasswordSalt = salt;
@@ -55,14 +56,14 @@ namespace StudyManager.Services.Services
         {
             var user = await _context.Users.Include(x => x.Courses).Include(x => x.CreatedCourses).FirstOrDefaultAsync(x => x.Id == id);
             if (user == null)
-                throw new Exception("User not found");
+                throw new ServiceException("User not found");
             return _mapper.Map<User, UserModel>(user);
         }
         public async Task<UserModel> Get(string login)
         {
             var user = await _context.Users.Include(x => x.Courses).Include(x=>x.CreatedCourses).FirstOrDefaultAsync(x => x.Login.ToLower() == login.ToLower());
             if (user == null)
-                throw new Exception("User not found");
+                throw new ServiceException("User not found");
             return _mapper.Map<User, UserModel>(user);
         }
         public async Task<List<UserModel>> GetAll(int take, int skip)

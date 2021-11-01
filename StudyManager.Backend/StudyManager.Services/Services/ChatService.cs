@@ -2,12 +2,12 @@
 using Microsoft.EntityFrameworkCore;
 using StudyManager.Data;
 using StudyManager.Data.Entities;
+using StudyManager.Data.Exceptions;
 using StudyManager.Data.Models.Chat;
 using StudyManager.Services.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace StudyManager.Services.Services
@@ -27,7 +27,7 @@ namespace StudyManager.Services.Services
             var user = await _context.Users.FirstOrDefaultAsync(x => x.Id == message.UserId);
             var course = await _context.Courses.FirstOrDefaultAsync(x => x.Id == message.ChatId);
             if (user == null || course == null)
-                throw new Exception("Wrong user id or course id");
+                throw new ServiceException("Wrong user id or course id");
 
             var newMessage = new Message
             {

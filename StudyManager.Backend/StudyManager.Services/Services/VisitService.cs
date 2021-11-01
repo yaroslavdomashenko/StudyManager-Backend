@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using StudyManager.Data;
 using StudyManager.Data.Entities;
+using StudyManager.Data.Exceptions;
 using StudyManager.Data.Models.User;
 using StudyManager.Data.Models.Visit;
 using StudyManager.Services.Interfaces;
@@ -27,9 +28,9 @@ namespace StudyManager.Services.Services
         {
             var course = await _context.Courses.FirstOrDefaultAsync(x => x.Id == model.CourseId);
             if (course == null)
-                throw new Exception("Course not found");
+                throw new ServiceException("Course not found");
             if(!course.IsActive)
-                throw new Exception("Course is closed");
+                throw new ServiceException("Course is closed");
 
             List<User> users = new List<User>();
             foreach(string id in model.Visitors)
@@ -40,7 +41,7 @@ namespace StudyManager.Services.Services
                     if (user.Courses.Any(x => x.Id == model.CourseId))
                         users.Add(user);
                     else
-                        throw new Exception($"User {id} not studying in {course.Id} course");
+                        throw new ServiceException($"User {id} not studying in {course.Id} course");
                 }
             }
 
@@ -62,7 +63,7 @@ namespace StudyManager.Services.Services
         {
             var course = await _context.Courses.FirstOrDefaultAsync(x => x.Id == courseId);
             if (course == null)
-                throw new Exception("Course not found");
+                throw new ServiceException("Course not found");
 
             var visits = await _context.Visits.Include(x => x.Visitors)
                 .Where(x => x.CourseId == courseId).Skip(skip).Take(take).OrderBy(x => x.DateCreated).ToListAsync();
@@ -74,8 +75,10 @@ namespace StudyManager.Services.Services
             var course = await _context.Courses.FirstOrDefaultAsync(x => x.Id == model.CourseId);
             var user = await _context.Users.Include(x => x.Visits).FirstOrDefaultAsync(x => x.Login == login);
 
-            if (course == null) throw new Exception("Course not found");
-            if (user == null) throw new Exception("User not found");
+            if (course == null) 
+                throw new ServiceException("Course not found");
+            if (user == null) 
+                throw new ServiceException("User not found");
 
             var visits = user.Visits.Where(x => x.CourseId == course.Id && x.DateCreated >= model.FirstDate && x.DateCreated <= model.SecondDate);
             return _mapper.Map<List<UsersVisitModel>>(visits);

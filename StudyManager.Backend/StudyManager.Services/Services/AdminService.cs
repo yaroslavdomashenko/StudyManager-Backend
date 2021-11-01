@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using StudyManager.Data;
 using StudyManager.Data.Entities;
+using StudyManager.Data.Exceptions;
 using StudyManager.Services.Interfaces;
 using System;
 using System.Threading.Tasks;
@@ -22,9 +23,9 @@ namespace StudyManager.Services.Services
             var user = await _context.Users.FirstOrDefaultAsync(x => x.Id == id);
             var requestor = await _context.Users.FirstOrDefaultAsync(x => x.Login.ToLower() == login.ToLower());
             if (user == null)
-                throw new Exception("User not found");
+                throw new ServiceException("User not found");
             if (user == requestor)
-                throw new Exception("You can't change your role");
+                throw new ServiceException("You can't change your role");
             user.Role = role;
             await _context.SaveChangesAsync();
 
@@ -35,9 +36,9 @@ namespace StudyManager.Services.Services
             var user = await _context.Users.FirstOrDefaultAsync(x => x.Login.ToLower() == userLogin.ToLower());
             var requestor = await _context.Users.FirstOrDefaultAsync(x => x.Login.ToLower() == login.ToLower());
             if (user == null)
-                throw new Exception("User not found");
+                throw new ServiceException("User not found");
             if (user == requestor)
-                throw new Exception("You can't change your role");
+                throw new ServiceException("You can't change your role");
             user.Role = role;
             await _context.SaveChangesAsync();
 
@@ -48,7 +49,7 @@ namespace StudyManager.Services.Services
         {
             var course = await _context.Courses.FirstOrDefaultAsync(x => x.Id == courseId);
             if (course == null)
-                throw new Exception("Course not found");
+                throw new ServiceException("Course not found");
             course.IsActive = false;
             await _context.SaveChangesAsync();
         }
@@ -57,7 +58,7 @@ namespace StudyManager.Services.Services
         {
             var course = await _context.Courses.FirstOrDefaultAsync(x => x.Id == courseId);
             if (course == null)
-                throw new Exception("Course not found");
+                throw new ServiceException("Course not found");
             course.IsActive = true;
             await _context.SaveChangesAsync();
         }

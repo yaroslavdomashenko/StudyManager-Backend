@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using StudyManager.Data;
 using StudyManager.Data.Entities;
+using StudyManager.Data.Exceptions;
 using StudyManager.Data.Models.Notification;
 using StudyManager.Services.Interfaces;
 using System;
@@ -26,7 +27,7 @@ namespace StudyManager.Services.Services
         {
             var user = await _context.Users.FirstOrDefaultAsync(x => x.Id == id);
             if (user == null)
-                throw new Exception("User not found");
+                throw new ServiceException("User not found");
 
             var notification = new Notification();
             notification.Text = text;
@@ -46,7 +47,7 @@ namespace StudyManager.Services.Services
         {
             var notification = await _context.Notifications.FirstOrDefaultAsync(x => x.Id == id);
             if (notification == null)
-                throw new Exception("Notification not found");
+                throw new ServiceException("Notification not found");
 
             notification.IsRead = true;
             await _context.SaveChangesAsync();

@@ -4,6 +4,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using StudyManager.Data;
 using StudyManager.Data.Entities;
+using StudyManager.Data.Exceptions;
 using StudyManager.Data.Models;
 using StudyManager.Services.Interfaces;
 using System;
@@ -31,9 +32,9 @@ namespace StudyManager.Services.Services
         {
             var user = await _context.Users.FirstOrDefaultAsync(x => x.Login.ToLower() == model.Login.ToLower());
             if (user == null)
-                throw new Exception("User not found");
+                throw new ServiceException("User not found");
             if (!VerifyPassswordHash(model.Password, user.PasswordHash, user.PasswordSalt))
-                throw new Exception("Wrong login or password");
+                throw new ServiceException("Wrong login or password");
 
             string token = CreateToken(user);
             return token;
