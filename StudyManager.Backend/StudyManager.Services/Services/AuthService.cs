@@ -1,10 +1,9 @@
 ﻿using AutoMapper;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
-using StudyManager.Data;
 using StudyManager.Data.Entities;
 using StudyManager.Data.Exceptions;
+using StudyManager.Data.Infrastructure;
 using StudyManager.Data.Models;
 using StudyManager.Services.Interfaces;
 using System;
@@ -18,19 +17,19 @@ namespace StudyManager.Services.Services
 {
     public class AuthService : IAuthService
     {
-        private readonly ApplicationContext _context;
+        private readonly IRepository<User> _repository;
         private readonly IMapper _mapper;
         private readonly IConfiguration _config;
-        public AuthService(ApplicationContext context, IMapper mapper, IConfiguration config)
+        public AuthService(IRepository<User> repository, IMapper mapper, IConfiguration config)
         {
-            _context = context;
+            _repository = repository;
             _mapper = mapper;
             _config = config;
         }
 
         public async Task<string> Login(LoginModel model)
         {
-            var user = await _context.Users.FirstOrDefaultAsync(x => x.Login.ToLower() == model.Login.ToLower());
+            var user = await _repository.GetFirstOrDefault(x => x.Login.ToLower() == model.Login.ToLower());
             if (user == null)
                 throw new ServiceException("User not found");
             if (!VerifyPassswordHash(model.Password, user.PasswordHash, user.PasswordSalt))
@@ -57,8 +56,7 @@ namespace StudyManager.Services.Services
                 };
                 _mapper.Map<RegisterModel, User>(model, user);
 
-                _context.Users.Add(user);
-                await _context.SaveChangesAsync();
+                await _repository.Add(user);
                 return true;
             }
             catch
@@ -68,8 +66,8 @@ namespace StudyManager.Services.Services
         }
         public async Task<bool> UserExists(string login)
         {
-            if (await _context.Users.AnyAsync(item => item.Login.ToLower() == login.ToLower()))
-                return true;
+            var user = await _repository.GetFirstOrDefault(x => x.Login.ToLower() == login.ToLower());
+            if (user != null) return true;
             return false;
         }
 

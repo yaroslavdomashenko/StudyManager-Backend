@@ -1,31 +1,37 @@
 ﻿using AutoMapper;
-using Microsoft.EntityFrameworkCore;
-using StudyManager.Data;
 using StudyManager.Data.Entities;
 using StudyManager.Data.Exceptions;
+using StudyManager.Data.Infrastructure;
 using StudyManager.Data.Models.Comment;
 using StudyManager.Services.Interfaces;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace StudyManager.Services.Services
 {
     public class CommentsService : ICommentsService
     {
-        private readonly ApplicationContext _context;
+        private readonly IRepository<User> _userRepository;
+        private readonly IRepository<Homework> _homeworkRepository;
+        private readonly IRepository<Comment> _commentRepository;
         private readonly IMapper _mapper;
-        public CommentsService(ApplicationContext context, IMapper mapper)
+
+        public CommentsService(IRepository<User> userRepository, 
+            IRepository<Homework> homeworkRepository,
+            IRepository<Comment> commentRepository,
+            IMapper mapper)
         {
-            _context = context;
+            _userRepository = userRepository;
+            _homeworkRepository = homeworkRepository;
+            _commentRepository = commentRepository;
             _mapper = mapper;
         }
 
         public async Task<CommentModel> CreateComment(Guid homeworkId, string userLogin, string text)
         {
-            var homework = await _context.Homeworks.FirstOrDefaultAsync(x => x.Id == homeworkId);
-            var user = await _context.Users.FirstOrDefaultAsync(x => x.Login == userLogin);
+            var homework = await _homeworkRepository.Get(homeworkId);
+            var user = await _userRepository.GetFirstOrDefault(x => x.Login.ToLower() == userLogin.ToLower());
             if (homework == null) throw new ServiceException("Homework not found");
             if (user == null) throw new ServiceException("User not found");
 
@@ -37,25 +43,19 @@ namespace StudyManager.Services.Services
                 User = user,
                 Text = text
             };
-            _context.Comments.Add(comment);
-            await _context.SaveChangesAsync();
+            await _commentRepository.Add(comment);
             return _mapper.Map<CommentModel>(comment);
         }
 
         public async Task DeleteComment(Guid id)
         {
-            var homework = await _context.Comments.FirstOrDefaultAsync(x => x.Id == id);
-            if (homework == null)
-                throw new ServiceException("Homework not found");
-
-            _context.Comments.Remove(homework);
-            await _context.SaveChangesAsync();
+            await _commentRepository.Delete(id);
         }
 
         public async Task<List<CommentModel>> GetComments(Guid homeworkId, int take, int skip)
         {
-            var list =  await _context.Comments.Include(x => x.User).Where(x => x.HomeworkId == homeworkId).OrderBy(x => x.DateCreated).Skip(skip).Take(take).ToListAsync();
-            return _mapper.Map<List<CommentModel>>(list);
+            var comments = await _commentRepository.GetWithLimit(skip, take, where => where.HomeworkId == homeworkId, include => include.User);
+            return _mapper.Map<List<CommentModel>>(comments);
         }
     }
 }

@@ -1,14 +1,11 @@
 ﻿using AutoMapper;
-using Microsoft.EntityFrameworkCore;
-using StudyManager.Data;
 using StudyManager.Data.Entities;
 using StudyManager.Data.Exceptions;
+using StudyManager.Data.Infrastructure;
 using StudyManager.Data.Models;
 using StudyManager.Services.Interfaces;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace StudyManager.Services.Services
@@ -17,28 +14,27 @@ namespace StudyManager.Services.Services
     {
         private readonly INotificationService _notificationService;
         private readonly IMapper _mapper;
-        private readonly ApplicationContext _context;
-        public UserService(ApplicationContext context, IMapper mapper, INotificationService notificationService)
+        private readonly IRepository<User> _repository;
+        public UserService(IRepository<User> repository, IMapper mapper, INotificationService notificationService)
         {
-            _context = context;
+            _repository = repository;
             _mapper = mapper;
             _notificationService = notificationService;
         }
 
         public async Task ChangeName(string login, ChangeNameModel model)
         {
-            var user = await _context.Users.FirstOrDefaultAsync(x => x.Login.ToLower() == login.ToLower());
+            var user = await _repository.GetFirstOrDefault(x => x.Login == login);
             if (user == null)
                 throw new ServiceException("User not found");
             user.Name = model.Name != null ? model.Name : user.Name;
             user.Surename = model.Surename != null ? model.Surename : user.Surename;
-            await _context.SaveChangesAsync();
-
+            await _repository.Update(user);
             await _notificationService.CreateForUser(user.Id, "Name successfully changed!");
         }
         public async Task ChangePassword(string login, ChangePasswordModel model)
         {
-            var user = await _context.Users.FirstOrDefaultAsync(x => x.Login.ToLower() == login.ToLower());
+            var user = await _repository.GetFirstOrDefault(x => x.Login == login);
             if (user == null)
                 throw new ServiceException("User not found");
             if (!VerifyPassswordHash(model.OldPassword, user.PasswordHash, user.PasswordSalt))
@@ -47,28 +43,32 @@ namespace StudyManager.Services.Services
             CreateHash(model.NewPassword, out byte[] hash, out byte[] salt);
             user.PasswordSalt = salt;
             user.PasswordHash = hash;
-            await _context.SaveChangesAsync();
+            await _repository.Update(user);
 
             await _notificationService.CreateForUser(user.Id, "Password successfully changed!");
         }
 
         public async Task<UserModel> Get(Guid id)
         {
-            var user = await _context.Users.Include(x => x.Courses).Include(x => x.CreatedCourses).FirstOrDefaultAsync(x => x.Id == id);
+            var user = await _repository.Get(id);
             if (user == null)
                 throw new ServiceException("User not found");
             return _mapper.Map<User, UserModel>(user);
         }
         public async Task<UserModel> Get(string login)
         {
-            var user = await _context.Users.Include(x => x.Courses).Include(x=>x.CreatedCourses).FirstOrDefaultAsync(x => x.Login.ToLower() == login.ToLower());
+            var user = await _repository.GetFirstOrDefault(
+                x => x.Login == login,
+                i => i.Courses,
+                i => i.CreatedCourses
+            );
             if (user == null)
                 throw new ServiceException("User not found");
             return _mapper.Map<User, UserModel>(user);
         }
         public async Task<List<UserModel>> GetAll(int take, int skip)
         {
-            var users = await _context.Users.Where(x => x.IsActive).Skip(skip).Take(take).ToListAsync();
+            var users = await _repository.GetWithLimit(skip, take);
             return _mapper.Map<List<User>, List<UserModel>>(users);
         }
 

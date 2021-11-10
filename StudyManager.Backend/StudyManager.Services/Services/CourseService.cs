@@ -1,8 +1,7 @@
 ﻿using AutoMapper;
-using Microsoft.EntityFrameworkCore;
-using StudyManager.Data;
 using StudyManager.Data.Entities;
 using StudyManager.Data.Exceptions;
+using StudyManager.Data.Infrastructure;
 using StudyManager.Data.Models;
 using StudyManager.Data.Models.Course;
 using StudyManager.Services.Interfaces;
@@ -16,20 +15,25 @@ namespace StudyManager.Services.Services
     public class CourseService : ICourseService
     {
         private readonly INotificationService _notificationService;
-        private readonly ApplicationContext _context;
+        private readonly IRepository<User> _userRepository;
+        private readonly IRepository<Course> _courseRepository;
         private readonly IMapper _mapper;
-        public CourseService(ApplicationContext context, IMapper mapper, INotificationService notificationService)
+        public CourseService(IRepository<User> userRepository, 
+            IRepository<Course> courseRepository,
+            IMapper mapper, 
+            INotificationService notificationService)
         {
-            _context = context;
+            _userRepository = userRepository;
+            _courseRepository = courseRepository;
             _mapper = mapper;
             _notificationService = notificationService;
         }
 
         public async Task Add(string requestor, string userLogin, Guid courseId)
         {
-            var req = await _context.Users.FirstOrDefaultAsync(x => x.Login.ToLower() == requestor.ToLower());
-            var user = await _context.Users.FirstOrDefaultAsync(x => x.Login == userLogin);
-            var course = await _context.Courses.Include(x => x.Students).FirstOrDefaultAsync(x => x.Id == courseId);
+            var req = await _userRepository.GetFirstOrDefault(x => x.Login.ToLower() == requestor.ToLower());
+            var user = await _userRepository.GetFirstOrDefault(x => x.Login.ToLower() == userLogin.ToLower());
+            var course = await _courseRepository.Get(courseId, include => include.Students);
 
             if (user == null || course == null)
                 throw new ServiceException("User or course not found");
@@ -40,36 +44,37 @@ namespace StudyManager.Services.Services
                 throw new ServiceException("User already in course");
 
             course.Students.Add(user);
-            await _context.SaveChangesAsync();
+            await _courseRepository.Update(course);
 
             await _notificationService.CreateForUser(user.Id, $"{req.Role} {req.Login} added you to \n{course.Title}\" course.");
         }
+
         public async Task Remove(Guid userId, Guid courseId)
         {
-            var user = await _context.Users.FirstOrDefaultAsync(x => x.Id == userId);
-            var course = await _context.Courses.Include(x => x.Students).FirstOrDefaultAsync(x => x.Id == courseId);
+            var user = await _userRepository.Get(userId);
+            var course = await _courseRepository.Get(courseId, include => include.Students);
             if (user == null || course == null)
                 throw new ServiceException("User or course not found");
 
             course.Students.Remove(user);
-            await _context.SaveChangesAsync();
+            await _courseRepository.Update(course);
 
             await _notificationService.CreateForUser(user.Id, $"You have been removed from \"{course.Title}\" course.");
         }
 
         public async Task ChangeActive(Guid courseId)
         {
-            var course = await _context.Courses.FirstOrDefaultAsync(x => x.Id == courseId);
+            var course = await _courseRepository.Get(courseId);
             if (course == null)
                 throw new ServiceException("Course not found");
             course.IsActive = !course.IsActive;
-            await _context.SaveChangesAsync();
+            await _courseRepository.Update(course);
         }
         public async Task<Course> Create(string login, string title, decimal price)
         {
             if (price <= 0) 
                 throw new ServiceException("Price can't be less or equal 0");
-            var teacher = await _context.Users.FirstOrDefaultAsync(x => x.Login.ToLower() == login.ToLower());
+            var teacher = await _userRepository.GetFirstOrDefault(x => x.Login.ToLower() == login.ToLower());
             if (teacher == null)
                 throw new ServiceException("User not found");
             Course course = new Course
@@ -81,27 +86,27 @@ namespace StudyManager.Services.Services
                 IsActive = true,
                 Price = price
             };
-            _context.Courses.Add(course);
-            await _context.SaveChangesAsync();
+            await _courseRepository.Add(course);
             return course;
         }
 
         public async Task<CourseModel> Get(Guid id)
         {
-            var course = await _context.Courses.Include(x => x.Students).Include(x => x.User).FirstOrDefaultAsync(x => x.Id == id);
+            var course = await _courseRepository.GetFirstOrDefault(x => x.Id == id, i => i.Students, i=>i.User);
             if (course == null)
                 throw new ServiceException("Course not found");
             return _mapper.Map<CourseModel>(course);
         }
+
         public async Task<List<Course>> GetAll(int take, int skip)
         {
-            return await _context.Courses.OrderBy(x => x.IsActive).Skip(skip).Take(take).ToListAsync();
+            return await _courseRepository.GetWithLimit(skip, take);
         }
 
         public async Task AddTeacher(string teacherLogin, Guid courseId)
         {
-            var user = await _context.Users.Include(x => x.Courses).FirstOrDefaultAsync(x => x.Login == teacherLogin);
-            var course = await _context.Courses.Include(x => x.User).FirstOrDefaultAsync(x => x.Id == courseId);
+            var user = await _userRepository.GetFirstOrDefault(x => x.Login == teacherLogin, i => i.Courses);
+            var course = await _courseRepository.Get(courseId, i => i.User);
 
             if (course == null || user == null) 
                 throw new ServiceException("User or course not found");
@@ -111,29 +116,29 @@ namespace StudyManager.Services.Services
                 throw new ServiceException("Course is closed");
 
             course.UserId = user.Id;
-            await _context.SaveChangesAsync();
+            await _courseRepository.Update(course);
 
             await _notificationService.CreateForUser(user.Id, $"You have been added as a teacher to \"{course.Title}\" course.");
         }
 
         public async Task RemoveTeacher(Guid courseId)
         {
-            var course = await _context.Courses.Include(x => x.User).FirstOrDefaultAsync(x => x.Id == courseId);
+            var course = await _courseRepository.Get(courseId, i => i.User);
             if (course == null) 
                 throw new ServiceException("Course not found");
             if (course.User == null) 
                 throw new ServiceException("Course already doesn't have a teacher");
 
-            var user = await _context.Users.Include(x => x.Courses).FirstOrDefaultAsync(x => x.Id == course.UserId);
+            var user = await _userRepository.GetFirstOrDefault(x => x.Id == course.UserId, i => i.Courses);
             course.UserId = null;
-            await _context.SaveChangesAsync();
+            await _courseRepository.Update(course);
 
             await _notificationService.CreateForUser(user.Id, $"You have been removed as a teacher from \"{course.Title}\" course.");
         }
 
         public async Task EditInfo(EditInfoModel model)
         {
-            var course = await _context.Courses.Include(x => x.User).FirstOrDefaultAsync(x => x.Id == model.CourseId);
+            var course = await _courseRepository.Get(model.CourseId, i => i.User);
             if (course == null) 
                 throw new ServiceException("Course not found");
 
@@ -141,8 +146,7 @@ namespace StudyManager.Services.Services
                 course.Title = model.Title;
             if (model.Price >= 0.1m) 
                 course.Price = model.Price;
-
-            await _context.SaveChangesAsync();
+            await _courseRepository.Update(course);
         }
     }
 }
