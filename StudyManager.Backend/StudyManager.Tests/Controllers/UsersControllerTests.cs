@@ -7,7 +7,6 @@ using StudyManager.Data.Models;
 using StudyManager.Services.Interfaces;
 using System;
 using System.Security.Claims;
-using System.Security.Principal;
 using System.Threading.Tasks;
 using Xunit;
 

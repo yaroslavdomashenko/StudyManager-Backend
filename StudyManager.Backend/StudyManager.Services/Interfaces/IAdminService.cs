@@ -6,7 +6,7 @@ namespace StudyManager.Services.Interfaces
 {
     public interface IAdminService
     {
-        Task ChangeRole(string login, Guid id, Role role);
-        Task ChangeRole(string login, string userLogin, Role role);
+        Task<bool> ChangeRole(string login, Guid id, Role role);
+        Task<bool> ChangeRole(string login, string userLogin, Role role);
     }
 }

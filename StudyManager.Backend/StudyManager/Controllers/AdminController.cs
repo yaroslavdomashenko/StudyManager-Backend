@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using StudyManager.Data.Entities;
-using StudyManager.Data.Exceptions;
 using StudyManager.ResponseModels;
 using StudyManager.Services.Interfaces;
 using System;
@@ -33,14 +32,9 @@ namespace StudyManager.Controllers
         [ProducesResponseType(typeof(ErrorModel), 400)]
         public async Task<IActionResult> ChangeRoleId(Guid id, Role role)
         {
-            try
-            {
-                await _adminService.ChangeRole(User.Identity.Name,id, role);
-                return Ok();
-            }catch(ServiceException ex)
-            {
-                return BadRequest(new ErrorModel { Code = 400, Message = ex.Message });
-            }
+            if(!await _adminService.ChangeRole(User.Identity.Name, id, role))
+                return BadRequest(new ErrorModel { Code = 400, Message = "User not found" });
+            return Ok();
         }
 
         /// <summary>
@@ -55,15 +49,9 @@ namespace StudyManager.Controllers
         [ProducesResponseType(typeof(ErrorModel), 400)]
         public async Task<IActionResult> ChangeRoleLogin(string login, Role role)
         {
-            try
-            {
-                await _adminService.ChangeRole(User.Identity.Name, login, role);
-                return Ok();
-            }
-            catch (ServiceException ex)
-            {
-                return BadRequest(new ErrorModel { Code = 400, Message = ex.Message });
-            }
+            if(!await _adminService.ChangeRole(User.Identity.Name, login, role))
+                return BadRequest(new ErrorModel { Code = 400, Message = "User not found" });
+            return Ok();
         }
     }
 }
