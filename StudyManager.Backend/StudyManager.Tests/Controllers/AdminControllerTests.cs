@@ -69,6 +69,5 @@ namespace StudyManager.Tests.Controllers
 
             return controller;
         }
-
     }
 }

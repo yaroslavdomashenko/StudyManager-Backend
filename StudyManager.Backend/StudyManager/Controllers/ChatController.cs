@@ -22,17 +22,10 @@ namespace StudyManager.Controllers
 
         [Authorize]
         [HttpGet("messages")]
-        public async Task<ActionResult<List<MessageDto>>> GetMessages(Guid chatId, int skip = 0)
+        public async Task<IActionResult> GetMessages(Guid chatId, int skip = 0)
         {
-            try
-            {
-                var messages = await _chatService.GetMessages(chatId, skip);
-                return Ok(messages);
-            }
-            catch (ServiceException ex)
-            {
-                return BadRequest(new ErrorModel { Code = 400, Message = ex.Message });
-            }
+            var messages = await _chatService.GetMessages(chatId, skip);
+            return Ok(messages);
         }
     }
 }
