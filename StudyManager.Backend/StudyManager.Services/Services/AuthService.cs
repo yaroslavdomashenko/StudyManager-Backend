@@ -31,9 +31,9 @@ namespace StudyManager.Services.Services
         {
             var user = await _repository.GetFirstOrDefault(x => x.Login.ToLower() == model.Login.ToLower());
             if (user == null)
-                throw new ServiceException("User not found");
+                return null;
             if (!VerifyPassswordHash(model.Password, user.PasswordHash, user.PasswordSalt))
-                throw new ServiceException("Wrong login or password");
+                return null;
 
             string token = CreateToken(user);
             return token;

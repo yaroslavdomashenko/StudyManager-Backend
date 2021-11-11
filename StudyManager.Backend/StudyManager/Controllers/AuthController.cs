@@ -39,20 +39,14 @@ namespace StudyManager.Controllers
         /// <param name="request"></param>
         /// <returns></returns>
         [HttpPost("login")]
-        [ProducesResponseType(typeof(TokenModel), 200)]
+        [ProducesResponseType(200)]
         [ProducesResponseType(typeof(ErrorModel), 400)]
         public async Task<IActionResult> Login(LoginModel request)
         {
-            try
-            {
-                TokenModel model = new TokenModel();
-                model.Token = await _authService.Login(request);
-                return Ok(model);
-            }
-            catch(ServiceException ex)
-            {
-                return BadRequest(new ErrorModel { Code = 400, Message = ex.Message });
-            }
+            string jwt = await _authService.Login(request);
+            if(jwt is null)
+                return BadRequest(new ErrorModel { Code = 400, Message = "Wrong username or password" });
+            return Ok(new { token = jwt });
         }
     }
 }

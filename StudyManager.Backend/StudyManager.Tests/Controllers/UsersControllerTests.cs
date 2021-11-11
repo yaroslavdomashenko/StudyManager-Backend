@@ -133,6 +133,8 @@ namespace StudyManager.Tests.Controllers
             model.Should().BeEquivalentTo(expectedUser, opt => opt.ComparingByMembers<UserModel>());
         }
 
+
+
         private UsersController CreateControllerWithUserIdentity()
         {
             var user = new ClaimsPrincipal(new ClaimsIdentity(new Claim[]
@@ -149,7 +151,6 @@ namespace StudyManager.Tests.Controllers
 
             return controller;
         }
-
         private UserModel CreateRandomUserModel()
         {
             return new UserModel
