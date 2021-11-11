@@ -50,15 +50,10 @@ namespace StudyManager.Controllers
         [ProducesResponseType(typeof(UserModel), 200)]
         public async Task<IActionResult> GetMe()
         {
-            try
-            {
-                var user = await _userService.Get(User.Identity.Name);
-                return Ok(user);
-            }
-            catch (ServiceException ex)
-            {
-                return NotFound(new ErrorModel { Code = 404, Message = ex.Message });
-            }
+            var user = await _userService.Get(User.Identity.Name);
+            if(user is null)
+                return NotFound(new ErrorModel { Code = 404, Message = "User not found" });
+            return Ok(user);
         }
 
         /// <summary>
@@ -69,16 +64,12 @@ namespace StudyManager.Controllers
         [HttpGet("id/{id}")]
         [ProducesResponseType(typeof(UserModel), 200)]
         [ProducesResponseType(typeof(ErrorModel), 404)]
-        public async Task<ActionResult<UserModel>> GetUser(Guid id)
+        public async Task<IActionResult> GetUser(Guid id)
         {
-            try
-            {
-                var user = await _userService.Get(id);
-                return Ok(user);
-            }catch(ServiceException ex)
-            {
-                return NotFound(new ErrorModel { Code = 404, Message = ex.Message });
-            }
+            var user = await _userService.Get(id);
+            if (user is null)
+                return NotFound(new ErrorModel { Code = 404, Message = "Not Found" });
+            return Ok(user);
         }
 
         /// <summary>
@@ -89,17 +80,12 @@ namespace StudyManager.Controllers
         [HttpGet("{login}")]
         [ProducesResponseType(typeof(UserModel), 200)]
         [ProducesResponseType(typeof(ErrorModel), 404)]
-        public async Task<ActionResult<UserModel>> GetUser(string login)
+        public async Task<IActionResult> GetUser(string login)
         {
-            try
-            {
-                var user = await _userService.Get(login);
-                return Ok(user);
-            }
-            catch (ServiceException ex)
-            {
-                return NotFound(new ErrorModel { Code = 404, Message = ex.Message });
-            }
+            var user = await _userService.Get(login);
+            if (user is null)
+                return NotFound(new ErrorModel { Code = 404, Message = "Not Found" });
+            return Ok(user);
         }
 
         /// <summary>

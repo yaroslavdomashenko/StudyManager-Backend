@@ -52,20 +52,22 @@ namespace StudyManager.Services.Services
         {
             var user = await _repository.Get(id);
             if (user == null)
-                throw new ServiceException("User not found");
+                return null;
             return _mapper.Map<User, UserModel>(user);
         }
+
         public async Task<UserModel> Get(string login)
         {
             var user = await _repository.GetFirstOrDefault(
-                x => x.Login == login,
+                x => x.Login.ToLower() == login.ToLower(),
                 i => i.Courses,
                 i => i.CreatedCourses
             );
             if (user == null)
-                throw new ServiceException("User not found");
+                return null;
             return _mapper.Map<User, UserModel>(user);
         }
+
         public async Task<List<UserModel>> GetAll(int take, int skip)
         {
             var users = await _repository.GetWithLimit(skip, take);
