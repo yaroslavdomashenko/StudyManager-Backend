@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 using StudyManager.Data.Entities;
 using StudyManager.Data.Exceptions;
 using StudyManager.Data.Infrastructure;
@@ -32,17 +33,17 @@ namespace StudyManager.Services.Services
 
         public async Task<VisitModel> CreateVisit(CreateVisitModel model)
         {
-            var course = await _courseRepository.Get(model.CourseId);
+            var course = await _courseRepository.Query().FirstOrDefaultAsync(x => x.Id == model.CourseId);
             if (course == null)
                 throw new ServiceException("Course not found");
-            if(!course.IsActive)
+            if (!course.IsActive)
                 throw new ServiceException("Course is closed");
 
             List<User> users = new List<User>();
-            foreach(string id in model.Visitors)
+            foreach (string id in model.Visitors)
             {
-                var user = await _userRepository.Get(Guid.Parse(id), i => i.Courses);
-                if(user != null)
+                var user = await _userRepository.Query(i => i.Courses).FirstOrDefaultAsync(x => x.Id == Guid.Parse(id));
+                if (user != null)
                 {
                     if (user.Courses.Any(x => x.Id == model.CourseId))
                         users.Add(user);
@@ -59,28 +60,32 @@ namespace StudyManager.Services.Services
                 Visitors = users
             };
 
-            await _visitRepository.Add(newVisit);
+            await _visitRepository.AddAsync(newVisit);
             return _mapper.Map<VisitModel>(newVisit);
         }
 
         public async Task<List<VisitModel>> GetVisits(Guid courseId, int take, int skip)
         {
-            var course = await _courseRepository.Get(courseId);
+            var course = await _courseRepository.Query().FirstOrDefaultAsync(x => x.Id == courseId);
             if (course == null)
                 throw new ServiceException("Course not found");
 
-            var visits = await _visitRepository.GetWithLimit(skip, take, w => w.CourseId == courseId, i => i.Visitors);
+            var visits = await _visitRepository.Query(i => i.Visitors)
+                .Where(x => x.CourseId == courseId)
+                .Skip(skip)
+                .Take(take)
+                .ToListAsync();
             return _mapper.Map<List<VisitModel>>(visits);
         }
 
         public async Task<List<UsersVisitModel>> GetVisitsInPeriod(GetVisitsInPeriod model, string login)
         {
-            var course = await _courseRepository.Get(model.CourseId);
-            var user = await _userRepository.GetFirstOrDefault(x => x.Login.ToLower() == login, i => i.Visits);
+            var course = await _courseRepository.Query().FirstOrDefaultAsync(x=>x.Id == model.CourseId);
+            var user = await _userRepository.Query(i=>i.Visits).FirstOrDefaultAsync(x => x.Login.ToLower() == login.ToLower());
 
-            if (course == null) 
+            if (course == null)
                 throw new ServiceException("Course not found");
-            if (user == null) 
+            if (user == null)
                 throw new ServiceException("User not found");
 
             var visits = user.Visits.Where(x => x.CourseId == course.Id && x.DateCreated >= model.FirstDate && x.DateCreated <= model.SecondDate);

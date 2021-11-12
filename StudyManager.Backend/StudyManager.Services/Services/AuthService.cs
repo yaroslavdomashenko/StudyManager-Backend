@@ -1,8 +1,8 @@
 ﻿using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using StudyManager.Data.Entities;
-using StudyManager.Data.Exceptions;
 using StudyManager.Data.Infrastructure;
 using StudyManager.Data.Models;
 using StudyManager.Services.Interfaces;
@@ -29,7 +29,8 @@ namespace StudyManager.Services.Services
 
         public async Task<string> Login(LoginModel model)
         {
-            var user = await _repository.GetFirstOrDefault(x => x.Login.ToLower() == model.Login.ToLower());
+            var user = await _repository.Query().FirstOrDefaultAsync(x => x.Login.ToLower() == model.Login.ToLower());
+
             if (user == null)
                 return null;
             if (!VerifyPassswordHash(model.Password, user.PasswordHash, user.PasswordSalt))
@@ -40,7 +41,7 @@ namespace StudyManager.Services.Services
         }
         public async Task<bool> Register(RegisterModel model)
         {
-            if (await UserExists(model.Login)) 
+            if (await UserExists(model.Login))
                 return false;
             CreateHash(model.Password, out byte[] hash, out byte[] salt);
 
@@ -56,17 +57,18 @@ namespace StudyManager.Services.Services
                 };
                 _mapper.Map<RegisterModel, User>(model, user);
 
-                await _repository.Add(user);
+                await _repository.AddAsync(user);
                 return true;
             }
             catch
             {
                 return false;
             }
+
         }
         public async Task<bool> UserExists(string login)
         {
-            var user = await _repository.GetFirstOrDefault(x => x.Login.ToLower() == login.ToLower());
+            var user = await _repository.Query().FirstOrDefaultAsync(x => x.Login.ToLower() == login.ToLower());
             if (user != null) return true;
             return false;
         }

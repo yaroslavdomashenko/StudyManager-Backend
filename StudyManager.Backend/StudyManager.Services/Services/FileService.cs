@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
 using StudyManager.Data.Entities;
 using StudyManager.Data.Exceptions;
 using StudyManager.Data.Infrastructure;
@@ -27,7 +28,8 @@ namespace StudyManager.Services.Services
 
         public async Task UploadAvatar(string userIdentity, IFormFile file)
         {
-            var user = await _userRepository.GetFirstOrDefault(x => x.Login == userIdentity);
+            var user = await _userRepository.Query().FirstOrDefaultAsync(x => x.Login.ToLower() == userIdentity.ToLower());
+
             if (user == null)
                 throw new ServiceException("User not found");
             if (user.Avatar != null)
@@ -41,7 +43,7 @@ namespace StudyManager.Services.Services
             }
 
             user.Avatar = path;
-            await _userRepository.Update(user);
+            await _userRepository.UpdateAsync(user);
             await _notificationService.CreateForUser(user.Id, "Avatar has been updated!");
         }
 

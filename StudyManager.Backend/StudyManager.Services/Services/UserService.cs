@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 using StudyManager.Data.Entities;
 using StudyManager.Data.Exceptions;
 using StudyManager.Data.Infrastructure;
@@ -6,6 +7,7 @@ using StudyManager.Data.Models;
 using StudyManager.Services.Interfaces;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace StudyManager.Services.Services
@@ -24,17 +26,17 @@ namespace StudyManager.Services.Services
 
         public async Task ChangeName(string login, ChangeNameModel model)
         {
-            var user = await _repository.GetFirstOrDefault(x => x.Login == login);
+            var user = await _repository.Query().FirstOrDefaultAsync(x => x.Login.ToLower() == login.ToLower());
             if (user == null)
                 throw new ServiceException("User not found");
             user.Name = model.Name != null ? model.Name : user.Name;
             user.Surename = model.Surename != null ? model.Surename : user.Surename;
-            await _repository.Update(user);
+            await _repository.UpdateAsync(user);
             await _notificationService.CreateForUser(user.Id, "Name successfully changed!");
         }
         public async Task ChangePassword(string login, ChangePasswordModel model)
         {
-            var user = await _repository.GetFirstOrDefault(x => x.Login == login);
+            var user = await _repository.Query().FirstOrDefaultAsync(x => x.Login.ToLower() == login.ToLower());
             if (user == null)
                 throw new ServiceException("User not found");
             if (!VerifyPassswordHash(model.OldPassword, user.PasswordHash, user.PasswordSalt))
@@ -43,14 +45,14 @@ namespace StudyManager.Services.Services
             CreateHash(model.NewPassword, out byte[] hash, out byte[] salt);
             user.PasswordSalt = salt;
             user.PasswordHash = hash;
-            await _repository.Update(user);
+            await _repository.UpdateAsync(user);
 
             await _notificationService.CreateForUser(user.Id, "Password successfully changed!");
         }
 
         public async Task<UserModel> Get(Guid id)
         {
-            var user = await _repository.Get(id);
+            var user = await _repository.Query().FirstOrDefaultAsync(x => x.Id == id);
             if (user == null)
                 return null;
             return _mapper.Map<User, UserModel>(user);
@@ -58,11 +60,8 @@ namespace StudyManager.Services.Services
 
         public async Task<UserModel> Get(string login)
         {
-            var user = await _repository.GetFirstOrDefault(
-                x => x.Login.ToLower() == login.ToLower(),
-                i => i.Courses,
-                i => i.CreatedCourses
-            );
+            var user = await _repository.Query(i => i.Courses, i => i.CreatedCourses)
+                .FirstOrDefaultAsync(x => x.Login.ToLower() == login.ToLower());
             if (user == null)
                 return null;
             return _mapper.Map<User, UserModel>(user);
@@ -70,7 +69,7 @@ namespace StudyManager.Services.Services
 
         public async Task<List<UserModel>> GetAll(int take, int skip)
         {
-            var users = await _repository.GetWithLimit(skip, take);
+            var users = await _repository.Query().Skip(skip).Take(take).ToListAsync();
             return _mapper.Map<List<User>, List<UserModel>>(users);
         }
 

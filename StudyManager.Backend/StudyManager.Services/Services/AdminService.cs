@@ -1,5 +1,5 @@
-﻿using StudyManager.Data.Entities;
-using StudyManager.Data.Exceptions;
+﻿using Microsoft.EntityFrameworkCore;
+using StudyManager.Data.Entities;
 using StudyManager.Data.Infrastructure;
 using StudyManager.Services.Interfaces;
 using System;
@@ -21,28 +21,32 @@ namespace StudyManager.Services.Services
 
         public async Task<bool> ChangeRole(string login, Guid id, Role role)
         {
-            var user = await _userRepository.Get(id);
-            var requestor = await _userRepository.GetFirstOrDefault(x => x.Login == login);
+            var user = await _userRepository.Query().FirstOrDefaultAsync(x => x.Id == id);
+            var requestor = await _userRepository.Query().FirstOrDefaultAsync(x => x.Login.ToLower() == login.ToLower());
+
             if (user == null)
                 return false;
             if (user == requestor)
                 return false;
+
             user.Role = role;
-            await _userRepository.Update(user);
+            await _userRepository.UpdateAsync(user);
             await _notificationService.CreateForUser(user.Id, $"Admin {requestor.Login} changed your role to {role}");
             return true;
         }
         public async Task<bool> ChangeRole(string login, string userLogin, Role role)
         {
-            var user = await _userRepository.GetFirstOrDefault(x => x.Login == userLogin);
-            var requestor = await _userRepository.GetFirstOrDefault(x => x.Login == login);
+            var user = await _userRepository.Query().FirstOrDefaultAsync(x => x.Login.ToLower() == userLogin.ToLower());
+            var requestor = await _userRepository.Query().FirstOrDefaultAsync(x=>x.Login.ToLower() == login.ToLower());
+
             if (user == null)
                 return false;
             if (user == requestor)
                 return false;
+
             user.Role = role;
-            await _userRepository.Update(user);
-            await _notificationService.CreateForUser(user.Id, $"Admin {requestor.Login} changed your role to {role}");
+            await _userRepository.UpdateAsync(user);
+            await _notificationService.CreateForUser(user.Id, $"admin {requestor.Login} changed your role to {role}");
             return true;
         }
     }

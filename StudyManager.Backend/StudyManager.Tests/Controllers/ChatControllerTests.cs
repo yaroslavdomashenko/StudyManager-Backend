@@ -6,8 +6,6 @@ using StudyManager.Data.Models.Chat;
 using StudyManager.Services.Interfaces;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -24,6 +22,22 @@ namespace StudyManager.Tests.Controllers
             var messages = GetListMessages();
             _chatService.Setup(x => x.GetMessages(Guid.NewGuid(), 0))
                 .ReturnsAsync(messages);
+            var controller = new ChatController(_chatService.Object);
+
+            // Act
+            var actionResult = await controller.GetMessages(Guid.NewGuid());
+
+            // Assert
+            actionResult.Should().BeOfType<OkObjectResult>();
+        }
+
+        [Fact]
+        public async Task GetMessages_ReturnsNothing()
+        {
+            // Arrange
+            var messages = GetListMessages();
+            _chatService.Setup(x => x.GetMessages(Guid.NewGuid(), 0))
+                .ReturnsAsync((List<MessageDto>)null);
             var controller = new ChatController(_chatService.Object);
 
             // Act

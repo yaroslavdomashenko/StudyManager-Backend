@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 using StudyManager.Data.Entities;
 using StudyManager.Data.Exceptions;
 using StudyManager.Data.Infrastructure;
@@ -6,6 +7,7 @@ using StudyManager.Data.Models.Comment;
 using StudyManager.Services.Interfaces;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace StudyManager.Services.Services
@@ -30,10 +32,13 @@ namespace StudyManager.Services.Services
 
         public async Task<CommentModel> CreateComment(Guid homeworkId, string userLogin, string text)
         {
-            var homework = await _homeworkRepository.Get(homeworkId);
-            var user = await _userRepository.GetFirstOrDefault(x => x.Login.ToLower() == userLogin.ToLower());
-            if (homework == null) throw new ServiceException("Homework not found");
-            if (user == null) throw new ServiceException("User not found");
+            var homework = await _homeworkRepository.Query().FirstOrDefaultAsync(x=>x.Id == homeworkId);
+            var user = await _userRepository.Query().FirstOrDefaultAsync(x => x.Login.ToLower() == userLogin.ToLower());
+
+            if (homework == null)
+                return null;
+            if (user == null)
+                return null;
 
             var comment = new Comment
             {
@@ -43,18 +48,22 @@ namespace StudyManager.Services.Services
                 User = user,
                 Text = text
             };
-            await _commentRepository.Add(comment);
+            await _commentRepository.AddAsync(comment);
             return _mapper.Map<CommentModel>(comment);
         }
 
         public async Task DeleteComment(Guid id)
         {
-            await _commentRepository.Delete(id);
+            await _commentRepository.DeleteAsync(id);
         }
 
         public async Task<List<CommentModel>> GetComments(Guid homeworkId, int take, int skip)
         {
-            var comments = await _commentRepository.GetWithLimit(skip, take, where => where.HomeworkId == homeworkId, include => include.User);
+            var comments = await _commentRepository.Query(include => include.User)
+                .Where(x => x.HomeworkId == homeworkId)
+                .Skip(skip).Take(take)
+                .OrderBy(x=> x.DateCreated)
+                .ToListAsync();
             return _mapper.Map<List<CommentModel>>(comments);
         }
     }
